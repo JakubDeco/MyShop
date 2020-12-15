@@ -1,8 +1,8 @@
 package sk.kosickaakademia.deco.shop.receipt;
 
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 import sk.kosickaakademia.deco.shop.Cart;
 import sk.kosickaakademia.deco.shop.items.Item;
 import sk.kosickaakademia.deco.shop.items.countable.CountItems;
@@ -17,6 +17,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -166,5 +167,47 @@ public abstract class XmlReceipt {
         item.appendChild(document.createTextNode(tmpString2));
         //price attribute
         price.setAttribute("unit","eur");
+    }
+
+    public static void printXmlReceipt(String filePath){
+        try {
+            File file=new File(filePath);
+            DocumentBuilderFactory dbf= DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc=db.parse(file);
+
+            System.out.println("\nDate: "+doc.getElementsByTagName("date").item(0).getTextContent());
+            System.out.println("Time: "+doc.getElementsByTagName("time").item(0).getTextContent());
+            
+            //print of receipt items
+            NodeList itemsNL=doc.getElementsByTagName("item");
+            for (int i = 0; i < itemsNL.getLength(); i++) {
+                Node temp=itemsNL.item(i);
+
+                NodeList itemNL=itemsNL.item(i).getChildNodes();
+                for (int j = 0; j < itemNL.getLength(); j++) {
+                    Node tempChild=itemNL.item(j);
+                    if (!tempChild.getNodeName().equals("#text")) {
+                        System.out.print(tempChild.getNodeName() + ": ");
+                    }
+                    if (!tempChild.getTextContent().equals("")){
+                        System.out.print(tempChild.getTextContent() + ", ");
+                    }
+
+                }
+                System.out.println();
+            }
+
+
+            System.out.println("Total price: "+doc.getElementsByTagName("totalPrice")
+                    .item(0).getTextContent());
+
+
+
+
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
+        }
+
     }
 }
